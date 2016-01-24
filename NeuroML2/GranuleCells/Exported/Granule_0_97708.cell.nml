@@ -15,12 +15,12 @@
             <segment id="20" name="Seg0_priden">
                 <parent fractionAlong="1" segment="0"/>
                 <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="5.000000e-01"/>
-                <distal y="3.861810e+02" x="0.000000e+00" z="0.000000e+00" diameter="5.000000e-01"/>
+                <distal y="-2.860818e+02" x="7.628848e+01" z="2.479376e+02" diameter="5.000000e-01"/>
             </segment>
             <segment id="21" name="Seg0_priden2_0">
                 <parent fractionAlong="1" segment="0"/>
                 <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="4.000000e-01"/>
-                <distal y="2.500000e+02" x="0.000000e+00" z="0.000000e+00" diameter="4.000000e-01"/>
+                <distal y="-1.851993e+02" x="4.938648e+01" z="1.605061e+02" diameter="4.000000e-01"/>
             </segment>
             <segmentGroup neuroLexId="sao864921383" id="soma">
                 <notes>This group contains an unbranched set of segments, and all of the segmentGroups marked with

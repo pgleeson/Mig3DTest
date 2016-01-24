@@ -91,8 +91,8 @@
             </segment>
             <segment id="269367" name="Seg0_hillock">
                 <parent fractionAlong="1" segment="268566"/>
-                <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="1.691670e+01"/>
-                <distal y="-5.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="4.583330e+00"/>
+                <proximal y="1.473680e+03" x="6.257470e+02" z="3.820740e+02" diameter="1.691670e+01"/>
+                <distal y="1.468680e+03" x="6.257470e+02" z="3.820740e+02" diameter="4.583330e+00"/>
             </segment>
             <segment id="268628" name="Seg0_secden_4">
                 <parent fractionAlong="1" segment="268576"/>
@@ -274,8 +274,8 @@
             </segment>
             <segment id="269368" name="Seg0_initialseg">
                 <parent fractionAlong="1" segment="269367"/>
-                <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="1.500000e+00"/>
-                <distal y="-3.000000e+01" x="0.000000e+00" z="0.000000e+00" diameter="1.500000e+00"/>
+                <proximal y="1.473680e+03" x="6.257470e+02" z="3.820740e+02" diameter="1.500000e+00"/>
+                <distal y="1.443680e+03" x="6.257470e+02" z="3.820740e+02" diameter="1.500000e+00"/>
             </segment>
             <segment id="268660" name="Seg0_secden_10">
                 <parent fractionAlong="1" segment="268629"/>
