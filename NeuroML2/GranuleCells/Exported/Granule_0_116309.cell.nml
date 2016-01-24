@@ -10,7 +10,7 @@
         <morphology id="morphology">
             <segment id="0" name="Seg0_soma">
                 <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="8.000000e+00"/>
-                <distal y="8.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="8.000000e+00"/>
+                <distal y="-4.662020e+00" x="3.016601e+00" z="5.758966e+00" diameter="8.000000e+00"/>
             </segment>
             <segment id="35" name="Seg0_priden">
                 <parent fractionAlong="1" segment="0"/>
