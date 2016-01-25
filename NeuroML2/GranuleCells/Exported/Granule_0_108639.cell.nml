@@ -6,18 +6,18 @@
     <include href="../Channels/kdrmt.channel.nml"/>
 
     <cell id="Granule_0_108639">
-        <notes>Cell: Granule_0_41 exported from NEURON ModelView</notes>
+        <notes>Cell: Granule_0_1733 exported from NEURON ModelView</notes>
         <morphology id="morphology">
             <segment id="0" name="Seg0_soma">
                 <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="8.000000e+00"/>
                 <distal y="-2.423357e+00" x="4.846714e+00" z="5.885296e+00" diameter="8.000000e+00"/>
             </segment>
-            <segment id="125" name="Seg0_priden">
+            <segment id="5201" name="Seg0_priden">
                 <parent fractionAlong="1" segment="0"/>
                 <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="5.000000e-01"/>
                 <distal y="-5.798185e+01" x="1.159637e+02" z="1.408131e+02" diameter="5.000000e-01"/>
             </segment>
-            <segment id="126" name="Seg0_priden2_0">
+            <segment id="5202" name="Seg0_priden2_0">
                 <parent fractionAlong="1" segment="0"/>
                 <proximal y="0.000000e+00" x="0.000000e+00" z="0.000000e+00" diameter="4.000000e-01"/>
                 <distal y="-7.572991e+01" x="1.514598e+02" z="1.839155e+02" diameter="4.000000e-01"/>
@@ -34,7 +34,7 @@
              These segmentGroups correspond to the 'cables' of NeuroML v1.8.1, and map to/from NEURON sections.</notes>
                 <property tag="numberInternalDivisions" value="13"/>
                 <annotation/>
-                <member segment="125"/>
+                <member segment="5201"/>
             </segmentGroup>
             <segmentGroup neuroLexId="sao864921383" id="priden2_0">
                 <notes>This group contains an unbranched set of segments, and all of the segmentGroups marked with
@@ -42,15 +42,15 @@
              These segmentGroups correspond to the 'cables' of NeuroML v1.8.1, and map to/from NEURON sections.</notes>
                 <property tag="numberInternalDivisions" value="26"/>
                 <annotation/>
-                <member segment="126"/>
+                <member segment="5202"/>
             </segmentGroup>
-            <segmentGroup id="OneSecGrp_SectionRef_248">
+            <segmentGroup id="OneSecGrp_SectionRef_10400">
                 <include segmentGroup="priden"/>
             </segmentGroup>
-            <segmentGroup id="OneSecGrp_SectionRef_249">
+            <segmentGroup id="OneSecGrp_SectionRef_10401">
                 <include segmentGroup="priden2_0"/>
             </segmentGroup>
-            <segmentGroup id="OneSecGrp_SectionRef_247">
+            <segmentGroup id="OneSecGrp_SectionRef_10399">
                 <include segmentGroup="soma"/>
             </segmentGroup>
             <segmentGroup id="all">
