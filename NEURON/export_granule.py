@@ -29,8 +29,8 @@ def __main__():
     import pydevd
     #pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=True)
 
-    numMitralsToUse = 2
-    numGranulesPerMitralToExport = 25
+    numMitralsToUse = 1
+    numGranulesPerMitralToExport = 5
     numGranulesTotal = numMitralsToUse * numGranulesPerMitralToExport
 
     mitral2granule = {}
@@ -56,8 +56,8 @@ def exportNetworkGCs(netFile):
 
     cells = {}
     for gcid in gcids:
-        if not os.path.isfile("../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml"):
-            cells.update({ gcid: { 'cell': mkgranule(gcid), 'index': len(cells)} })
+        #if not os.path.isfile("../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml"):
+        cells.update({ gcid: { 'cell': mkgranule(gcid), 'index': len(cells)} })
 
     exportToNML(cells)
 
@@ -85,36 +85,19 @@ def exportToNML(cells):
         os.rename(oldFile, newFile)
 
     for gcid in cells.keys():
-         
-        nml_cell_file = "../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml" % gcid
 
-        nml_doc = pynml.read_neuroml2_file(nml_cell_file)
+        cell, nml_doc, nml_cell_file = readGCnml(gcid)
 
-        cell = nml_doc.cells[0]
-
-        print("Loaded cell with %i segments"%len(cell.morphology.segments))
+        print("Loaded GC cell %i with %i segments"%(gcid, len(cell.morphology.segments)))
 
         # Change cell ID to preserve GCID
         cell.id = "Granule_0_%i" % gcid
 
-        bad_root = -1
-        root_id = 0
+        # Change segment ids to start at 0 and increment
+        nextSegId = 0
         for seg in cell.morphology.segments:
-            if seg.parent is None:
-                if seg.id != 0:
-                    bad_root = seg.id
-                    seg.id = root_id
-                    print("Changing root id from %i to %i"%(bad_root,root_id))
-                    
-        if bad_root > 0:
-            for seg in cell.morphology.segments:
-                if seg.parent is not None:
-                    if seg.parent.segments == bad_root:
-                        seg.parent.segments = root_id
-            for sg in cell.morphology.segment_groups:
-                for memb in sg.members:
-                    if memb.segments == bad_root:
-                        memb.segments = root_id
+            changeSegmentId(cell, seg.id, nextSegId)
+            nextSegId += 1
 
         # Replace ModelViewParmSubset_N groups with all, axon, soma, dendrite groups
         buildStandardSegmentGroups(cell)
@@ -122,6 +105,7 @@ def exportToNML(cells):
         # Add channel placeholders
         nml_doc.includes.append(neuroml.IncludeType(href="channelIncludesPLACEHOLDER"))
         cell.biophysical_properties = neuroml.BiophysicalProperties(id="biophysPLACEHOLDER")
+        cell.morphology.segments.append(neuroml.Segment(id="spinePLACEHOLDER"))
 
         # Save the new NML
         pynml.write_neuroml2_file(nml_doc, nml_cell_file)
@@ -129,7 +113,66 @@ def exportToNML(cells):
         # Replace placeholders with contents from GranuleCell...xml files
         replaceChannelPlaceholders(nml_cell_file)
 
-    pynml.nml2_to_svg(nml_net_file)
+        # Orient cell along the versor
+        cell, nml_doc, nml_cell_file = readGCnml(gcid)
+
+        versor = granules.granule_position_orientation(gcid)[1]
+
+        for seg in cell.morphology.segments:
+            segLength = seg.length
+
+            if seg.parent is not None:
+                parentDistal = [parent for parent in cell.morphology.segments if parent.id == seg.parent.segments][0].distal
+                seg.proximal.x = parentDistal.x
+                seg.proximal.y = parentDistal.y
+                seg.proximal.z = parentDistal.z
+
+            seg.distal = setAlongVersor(seg.distal, versor, seg.proximal, segLength)
+
+        # Make sure spine is in the all group
+        [group for group in cell.morphology.segment_groups if group.id == 'all'][0]\
+            .includes\
+            .append(neuroml.Include(segment_groups='spine_group'))\
+
+        # and Dendrite group
+        [group for group in cell.morphology.segment_groups if group.id == 'dendrite_group'][0]\
+            .includes\
+            .append(neuroml.Include(segment_groups='spine_group'))
+
+        # Save orientation
+        pynml.write_neuroml2_file(nml_doc, nml_cell_file)
+
+        print(nml_cell_file)
+
+def readGCnml(gcid):
+
+    nml_cell_file = "../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml" % gcid
+    nml_doc = pynml.read_neuroml2_file(nml_cell_file)
+    cell = nml_doc.cells[0]
+
+    return cell, nml_doc, nml_cell_file
+
+def changeSegmentId(cell, sourceId, targetId):
+
+    for seg in cell.morphology.segments:
+        if seg.id == sourceId:
+            seg.id = targetId
+
+            for sg in cell.morphology.segment_groups:
+                for memb in sg.members:
+                    if memb.segments == sourceId:
+                        memb.segments = targetId
+
+        if seg.parent is not None and seg.parent.segments == sourceId:
+            seg.parent.segments = targetId
+
+def setAlongVersor(segmentPoint, versor, startPoint, distance):
+
+    segmentPoint.x = startPoint.x + versor[0]*distance
+    segmentPoint.y = startPoint.y + versor[1]*distance
+    segmentPoint.z = startPoint.z + versor[2]*distance
+
+    return segmentPoint
 
 def replaceChannelPlaceholders(nml_cell_file):
 
@@ -139,10 +182,14 @@ def replaceChannelPlaceholders(nml_cell_file):
     with open ("../NeuroML2/GranuleCells/GranuleCellChannelIncludes.xml", "r") as channelIncludesFile:
         channelIncludes=channelIncludesFile.read()
 
+    with open ("../NeuroML2/GranuleCells/GranuleCellSpineSegments.xml", "r") as spineFile:
+        spine=spineFile.read()
+
     with open (nml_cell_file, "r") as cellFile:
         cellNMLreplaced=cellFile.read()\
             .replace('<include href="channelIncludesPLACEHOLDER"></include>', channelIncludes)\
             .replace('<biophysicalProperties id="biophysPLACEHOLDER"/>', bioPhysProps)\
+            .replace('<segment id="spinePLACEHOLDER"/>', spine)
 
     with open(nml_cell_file, "w") as cellFile:
         cellFile.write(cellNMLreplaced)

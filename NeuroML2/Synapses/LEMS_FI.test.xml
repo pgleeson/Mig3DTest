@@ -1,0 +1,40 @@
+<Lems>
+    
+    <Target component="sim1"/>
+    
+    <Include file="NeuroMLCoreDimensions.xml"/>
+    <Include file="Cells.xml"/>
+    <Include file="Networks.xml"/>
+    <Include file="Simulation.xml"/>
+    
+    <Include file="FI.synapse.nml" />
+    
+    
+    
+    <iafCell id="iaf1" leakReversal="-50mV" thresh="-55mV" reset="-80mV" C="1e-5uF" leakConductance="65e-7mS"/>
+    <iafCell id="iaf2" leakReversal="-50mV" thresh="-55mV" reset="-80mV" C="1e-5uF" leakConductance="1e-7mS"/>
+    
+    
+    <network id="net2">
+        <population id="src" component="iaf1" size="1"/>
+        <population id="tgt" component="iaf2" size="1"/>
+        <synapticConnection from="src[0]" to="tgt[0]" synapse="FIsyn" destination="synapses"/>
+    </network>
+    
+    
+    <Simulation id="sim1" length="300ms" step="0.01ms" target="net2">
+        <Display id="d1" title="FI sin" timeScale="1ms" xmin="0" xmax="300" ymin="-75" ymax="-50">
+            <Line id="l0" quantity="src[0]/v" scale="1mV" color="#000000" timeScale="1ms"/>
+            <Line id="l1" quantity="tgt[0]/v" scale="1mV" color="#0000FF" timeScale="1ms"/>
+        </Display>
+        
+        <Display id="d2" title="fi g" timeScale="1ms" xmin="0" xmax="300" ymin="-0.01" ymax="0.11">
+            <Line id ="plast" quantity="tgt[0]/FIsyn/plasticity" scale="0.01 S"  color="#000000" timeScale="1ms"/>
+            <Line id ="step" quantity="tgt[0]/FIsyn/step" scale="1 S"  color="#0000FF" timeScale="1ms"/>
+            <Line id ="tSince" quantity="tgt[0]/FIsyn/timeSinceSpike" scale="35 mS"  color="#FF0000" timeScale="1ms"/>
+        </Display>
+        
+    </Simulation>
+    
+    
+</Lems>

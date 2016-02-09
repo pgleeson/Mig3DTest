@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<neuroml xmlns="http://www.neuroml.org/schema/neuroml2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta4.xsd" id="TEST_syn">
+
+    <notes>Ampa/Nmda synapse with spike-timing plasticity. Implemented from Migliore et. al. 2014</notes>
+
+    <ComponentType name="ampaNmdaSynapse"
+        extends="baseSynapse">
+
+        <Parameter name="LTPlimit" dimension="time" description="The upper time limit for LTP. E.g. 30 ms."/>
+        <Parameter name="LTDlimit" dimension="time" description="The upper time limit for LTD. The LTP window will be between LTPlimit and LTDlimit. E.g. 200 ms."/>
+        <Parameter name="sigHalf" dimension="none" description="The halfway point for the plasticity function. E.g. 50."/>
+        <Parameter name="sigSlope" dimension="none" description="The steepnes of the plasticity function. E.g. 10."/>
+        
+        <Parameter name="Alpha" dimension="per_time"/>
+        <Parameter name="Beta" dimension="per_time"/>
+        
+        <Parameter name="gmax" dimension="conductance"/>
+        <Parameter name="gampafactor" dimension="none"/>
+        <Parameter name="nmdafactor" dimension="none"/>
+        
+        <Parameter name="ampatau" dimension="time"/>
+        <Parameter name="Cdur" dimension="time"/>
+        <Parameter name="E" dimension="voltage"/>
+        <Parameter name="mg" dimension="concentration"/>
+        
+        <Constant name="mV" dimension="voltage" value="1 mV" />
+        <Constant name="mM" dimension="concentration" value="1 mM" />
+        
+        <Dynamics>
+            <StateVariable name="Ron" dimension="none"/>
+            <StateVariable name="Roff" dimension="none"/>
+            <StateVariable name="gampa" dimension="conductance"/>
+            <StateVariable name="synon" dimension="none"/>
+            <StateVariable name="r0" dimension="none"/>
+            <StateVariable name="t0" dimension="time"/>
+            
+            <StateVariable name="lastSpike" dimension="time" />
+            <StateVariable name="lastAfterspike" dimension="time" />
+            <StateVariable name="step" dimension="none"/>
+            <StateVariable name="spikeProcessed" dimension="none"/>
+            <StateVariable name="afterspikeProcessed" dimension="none"/>
+            
+            <DerivedVariable name="Rinf" dimension="none" value="Alpha / (Alpha + Beta)" />
+            <DerivedVariable name="Rtau" dimension="time" value="1 / (Alpha + Beta)" />
+            
+            
+            <DerivedVariable name="mgblock" dimension="none" value="1 / (1 + exp(0.062 * -(v/mV)) * ((mg/mM) / 3.57))" />
+            <DerivedVariable name="gnmda" dimension="conductance" value="mgblock*(Ron + Roff)*gmax*nmdafactor" />
+            
+            <DerivedVariable name="inmda" dimension="current" value="gnmda*(v - E)" />
+            <DerivedVariable name="iampa" dimension="current" value="gampa*(v - E)" />
+            
+            <DerivedVariable name="i" exposure="i" dimension="current" value="iampa + inmda" />
+            <DerivedVariable name="timeSinceSpike" dimension="time" value="t-lastSpike"/>
+            <DerivedVariable name="timeSinceAfterspike" dimension="time" value="t-lastAfterspike"/>
+            
+            <TimeDerivative variable="Ron" value="(synon*Rinf - Ron)/Rtau" />
+            <TimeDerivative variable="Roff" value="-Beta*Roff" />
+            <TimeDerivative variable="gampa" value="-gampa/ampatau" />
+            
+            <ConditionalDerivedVariable name="stepPlusOne" dimension="none">
+                <Case condition="step .eq. 2*sigHalf" value="2*sigHalf"/>
+                <Case condition="step .lt. 2*sigHalf" value="step + 1"/>
+            </ConditionalDerivedVariable>
+            
+            <ConditionalDerivedVariable name="stepMinusOne" dimension="none">
+                <Case condition="step .eq. 0" value="0"/>
+                <Case condition="step .gt. 0" value="step - 1"/>
+            </ConditionalDerivedVariable>
+            
+            <DerivedVariable name="plasticity" dimension="none" value="1 - 1/(1 + exp((step - sigHalf)/sigSlope))" />
+            
+            <OnStart>
+                <StateAssignment variable="synon" value="0" />
+                <StateAssignment variable="gampa" value="0" />
+                <StateAssignment variable="r0" value="0" />
+                <StateAssignment variable="t0" value="0" />
+                <StateAssignment variable="lastSpike" value="t" />
+                <StateAssignment variable="lastAfterspike" value="t" />
+                <StateAssignment variable="step" value="0" />
+                <StateAssignment variable="spikeProcessed" value="1" />
+                <StateAssignment variable="afterspikeProcessed" value="1" />
+            </OnStart>
+            
+            <OnEvent port="in">
+                <!-- Label the spike as un-handled -->
+                <StateAssignment variable="spikeProcessed" value="0" />
+            </OnEvent>
+            
+            <OnCondition test="spikeProcessed .eq. 0 .and. timeSinceSpike .lt. LTPlimit">
+                <StateAssignment variable="step" value="stepPlusOne"/>
+            </OnCondition>
+            
+            <OnCondition test="spikeProcessed .eq. 0 .and. timeSinceSpike .geq. LTPlimit .and. timeSinceSpike .leq. LTDlimit">
+                <StateAssignment variable="step" value="stepMinusOne"/>
+            </OnCondition>
+            
+            <OnCondition test="spikeProcessed .eq. 0">
+                <StateAssignment variable="gampa" value="gampa+plasticity*gmax*gampafactor" />
+                <StateAssignment variable="r0" value="r0*exp(-Beta*timeSinceAfterspike)" />
+                <StateAssignment variable="synon" value="synon + plasticity" />
+                <StateAssignment variable="Ron" value="Ron + r0" />
+                <StateAssignment variable="Roff" value="Roff - r0" />
+                
+                <!-- Label the spike as handled -->
+                <StateAssignment variable="spikeProcessed" value="1" />
+                <StateAssignment variable="lastSpike" value="t" />
+                
+                <!-- Schedule an after-spike -->
+                <StateAssignment variable="afterspikeProcessed" value="0" />
+            </OnCondition>
+            
+            <OnCondition test="afterspikeProcessed .eq. 0 .and. timeSinceSpike .geq. Cdur">
+                <StateAssignment variable="r0" value="plasticity*Rinf + (r0 - plasticity*Rinf)*exp(-timeSinceAfterspike/Rtau)" />
+                <StateAssignment variable="synon" value="synon - plasticity" />
+                <StateAssignment variable="Ron" value="Ron - r0" />
+                <StateAssignment variable="Roff" value="Roff + r0" />
+                
+                <!-- Label the after-spike as handled -->
+                <StateAssignment variable="afterspikeProcessed" value="1"/>
+                <StateAssignment variable="lastAfterspike" value="t" />
+            </OnCondition>
+        </Dynamics>
+        
+    </ComponentType>
+    
+    
+    <ampaNmdaSynapse id="AmpaNmdaSyn" Cdur="1 ms" Alpha="0.35 per_ms" Beta="0.035 per_ms" E="0.0 mV" mg="1 mM"
+        gmax="2 uS" gampafactor="0.001" nmdafactor="0.0035" LTPlimit="33.33 ms" LTDlimit="250 ms" sigHalf="50"
+        sigSlope="10" ampatau="3 ms"/>
+
+</neuroml>

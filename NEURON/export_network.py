@@ -14,8 +14,8 @@ def __main__():
     import customsim
     import modeldata
 
-    MCs = 2
-    GCsPerMC = 10
+    MCs = 1
+    GCsPerMC = 5
 
     networkTemplate = FileTemplate("../NeuroML2/Networks/NetworkTemplate.xml")
     includeTemplate = FileTemplate("../NeuroML2/Networks/IncludeTemplate.xml")
@@ -44,9 +44,9 @@ def __main__():
         populations += populationTemplate.text\
             .replace("[CellType]", "Mitral")\
             .replace("[GID]", `mcgid`)\
-            .replace("[X]", `0`)\
-            .replace("[Y]", `0`)\
-            .replace("[Z]", `0`)
+            .replace("[X]", `model.mitrals[mcgid].x`)\
+            .replace("[Y]", `model.mitrals[mcgid].y`)\
+            .replace("[Z]", `model.mitrals[mcgid].z`)
 
         # Retain mitral cell NML
         mcNML = pynml\
@@ -57,6 +57,7 @@ def __main__():
 
     # Make GC includes and populations
     import granules
+    from neuroml.nml.nml import NeuroMLDocument
 
     for gcgid in model.granule_gids:
 
@@ -71,8 +72,19 @@ def __main__():
             .replace("[Y]", `granules.gid2pos[gcgid][1]`)\
             .replace("[Z]", `granules.gid2pos[gcgid][2]`)
 
+        # Retain granule cell NML
+        gcNML = pynml\
+                .read_neuroml2_file("../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml" % gcgid)\
+
+        gcNMLs.update({gcgid:gcNML})
+
     # Add a projection for each synapse
+    synCount = len(model.mgrss.keys())
+    curSyn = 0
+
     for sgid in model.mgrss.keys():
+
+        print('Building synapse %i of %i' % (curSyn+1,synCount))
 
         synapse = model.mgrss[sgid]
 
@@ -83,24 +95,41 @@ def __main__():
                          if seg.name == "Seg%i_secden_%i"%(secdenIndex,synapse.isec)\
                         ][0]
 
-        # TODO: determine if numOfDivisions should be equal to number of group members if so, keep the below code
-        #npriden = model.granules[synapse.ggid].priden2[synapse.ipri].nseg
-        #pridenIndex = min(npriden-1, int(synapse.xg * npriden))
-        #preSegmentId = [seg.id \
-        #                 for seg in gcNMLs[synapse.ggid].morphology.segments \
-        #                 if seg.name == "Seg%i_priden2_%i"%(pridenIndex,synapse.ipri) \
-        #                ][0]
+        gcNML = gcNMLs[synapse.ggid].cells[0]
 
+        # Position the spine along the GC priden
+        neck = [seg for seg in gcNML.morphology.segments if seg.name == 'Seg0_neck'][0]
+        neck.parent.fraction_along = `synapse.xg`
+        pynml.write_neuroml2_file(gcNMLs[synapse.ggid], "../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml" % synapse.ggid)
+
+        # Add Dendro-dendritic synapses
+        # GC -> MC part
         projections += projectionTemplate.text\
-            .replace("[ProjectionID]", `sgid`)\
+            .replace("[ProjectionID]", `sgid`+'_G2M')\
             .replace("[PreCellType]", "Granule")\
             .replace("[PreGID]", `synapse.ggid`)\
-            .replace("[PreSegment]", `synapse.ipri`)\
-            .replace("[PreAlong]", `synapse.xg`)\
+            .replace("[PreSegment]", `4`)\
+            .replace("[PreAlong]", `0.5`)\
             .replace("[PostCellType]", "Mitral")\
             .replace("[PostGID]", `synapse.mgid`)\
             .replace("[PostSegment]", `postSegmentId`)\
-            .replace("[PostAlong]", "0.5")
+            .replace("[PostAlong]", "0.5")\
+            .replace("[Synapse]", "FIsyn")\
+
+        # MC -> GC part
+        projections += projectionTemplate.text\
+            .replace("[ProjectionID]", `sgid`+'_M2G')\
+            .replace("[PreCellType]", "Mitral")\
+            .replace("[PreGID]", `synapse.mgid`)\
+            .replace("[PreSegment]", `postSegmentId`)\
+            .replace("[PreAlong]", `0.5`)\
+            .replace("[PostCellType]", "Granule")\
+            .replace("[PostGID]", `synapse.ggid`)\
+            .replace("[PostSegment]", `4`)\
+            .replace("[PostAlong]", "0.5")\
+            .replace("[Synapse]", "AmpaNmdaSyn")\
+
+        curSyn += 1
 
 
     network = networkTemplate.text\
@@ -110,6 +139,8 @@ def __main__():
 
     with open(netFile, "w") as file:
         file.write(network)
+
+    print('Net file saved to: ' + netFile)
 
 class FileTemplate():
     def __init__(self, path):

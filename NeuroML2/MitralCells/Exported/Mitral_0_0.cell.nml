@@ -2773,7 +2773,7 @@
                 <proximal y="4.639320e+02" x="6.734550e+02" z="-1.717050e+02" diameter="1.660430e+00"/>
                 <distal y="4.742590e+02" x="6.788120e+02" z="-1.879730e+02" diameter="1.535470e+00"/>
             </segment>
-            <segment id="669" name="Seg0_secden_32">
+            <segment id="1" name="Seg0_secden_32">
                 <parent fractionAlong="1" segment="665"/>
                 <proximal y="4.639320e+02" x="6.734550e+02" z="-1.717050e+02" diameter="1.660430e+00"/>
                 <distal y="4.806000e+02" x="6.784670e+02" z="-1.815570e+02" diameter="1.628730e+00"/>
@@ -3732,7 +3732,7 @@
                 <notes>This group contains an unbranched set of segments, and all of the segmentGroups marked with
              neuroLexId = sao864921383 form a non-overlapping set of all of the segments.
              These segmentGroups correspond to the 'cables' of NeuroML v1.8.1, and map to/from NEURON sections.</notes>
-                <member segment="669"/>
+                <member segment="1"/>
             </segmentGroup>
             <segmentGroup id="all">
                 <include segmentGroup="soma"/>

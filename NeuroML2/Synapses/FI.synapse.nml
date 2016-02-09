@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<neuroml xmlns="http://www.neuroml.org/schema/neuroml2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta4.xsd" id="TEST_syn">
+
+    <notes>FastInhibitory synapse with spike-timing plasticity. Implemented from Migliore et. al. 2014</notes>
+
+    <ComponentType name="fastInhibitorySynapse"
+        extends="expTwoSynapse">
+
+        <Parameter name="LTPlimit" dimension="time" description="The upper time limit for LTP. E.g. 30 ms."/>
+        <Parameter name="LTDlimit" dimension="time" description="The upper time limit for LTD. The LTP window will be between LTPlimit and LTDlimit. E.g. 200 ms."/>
+        <Parameter name="sigHalf" dimension="none" description="The halfway point for the plasticity function. E.g. 50."/>
+        <Parameter name="sigSlope" dimension="none" description="The steepnes of the plasticity function. E.g. 10."/>
+        
+        <Dynamics>
+            <StateVariable name="A" dimension="none"/>
+            <StateVariable name="B" dimension="none"/>
+            <StateVariable name="step" dimension="none"/>
+            <StateVariable name="lastSpike" dimension="time"/>
+            <StateVariable name="spikeProcessed" dimension="none"/>
+            
+            <DerivedVariable name="g" dimension="conductance" exposure="g" value="gbase * (B - A)" />
+            <DerivedVariable name="i" exposure="i" dimension="current" value="g * (erev - v)" />
+            
+            <ConditionalDerivedVariable name="tauRiseCapped" dimension="time">
+                <Case condition="tauRise/tauDecay .gt. 0.9999" value="tauDecay*0.9999"/>
+                <Case condition="tauRise/tauDecay .leq. 0.9999" value="tauRise"/>
+            </ConditionalDerivedVariable>
+            
+            <ConditionalDerivedVariable name="stepPlusOne" dimension="none">
+                <Case condition="step .eq. 2*sigHalf" value="2*sigHalf"/>
+                <Case condition="step .lt. 2*sigHalf" value="step + 1"/>
+            </ConditionalDerivedVariable>
+            
+            <ConditionalDerivedVariable name="stepMinusOne" dimension="none">
+                <Case condition="step .eq. 0" value="0"/>
+                <Case condition="step .gt. 0" value="step - 1"/>
+            </ConditionalDerivedVariable>
+            
+            <DerivedVariable name="plasticity" dimension="none" value="1 - 1/(1 + exp((step - sigHalf)/sigSlope))" />
+            <DerivedVariable name="timeSinceSpike" dimension="time" value="t - lastSpike" />
+            <TimeDerivative variable="A" value="-A / tauRiseCapped" />
+            <TimeDerivative variable="B" value="-B / tauDecay" />
+            
+            <OnStart>
+                <StateAssignment variable="A" value="0" />
+                <StateAssignment variable="B" value="0" />
+                <StateAssignment variable="lastSpike" value="t"/>
+                <StateAssignment variable="step" value="0" />
+                <StateAssignment variable="spikeProcessed" value="1" />
+            </OnStart>
+            
+            <OnEvent port="in">
+                <StateAssignment variable="spikeProcessed" value="0" />
+            </OnEvent>
+            
+            <OnCondition test="spikeProcessed .eq. 0 .and. timeSinceSpike .lt. LTPlimit">
+                <StateAssignment variable="step" value="stepPlusOne"/>
+            </OnCondition>
+            
+            <OnCondition test="spikeProcessed .eq. 0 .and. timeSinceSpike .geq. LTPlimit .and. timeSinceSpike .leq. LTDlimit">
+                <StateAssignment variable="step" value="stepMinusOne"/>
+            </OnCondition>
+            
+            <OnCondition test="spikeProcessed .eq. 0">
+                <StateAssignment variable="A" value="A + plasticity*waveformFactor" />
+                <StateAssignment variable="B" value="B + plasticity*waveformFactor" />
+                <StateAssignment variable="spikeProcessed" value="1" />
+                <StateAssignment variable="lastSpike" value="t" />
+            </OnCondition>
+            
+            
+        </Dynamics>
+        
+    </ComponentType>
+    
+    
+    <fastInhibitorySynapse id="FIsyn" tauRise="1 ms" tauDecay="200 ms" gbase="0.003 uS" erev="-80.0 mV"
+        LTPlimit="33.33 ms" LTDlimit="250 ms" sigHalf="50" sigSlope="10"/>
+
+</neuroml>
