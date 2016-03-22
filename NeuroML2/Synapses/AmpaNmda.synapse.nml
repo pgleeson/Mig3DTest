@@ -36,7 +36,7 @@
             
             <StateVariable name="lastSpike" dimension="time" />
             <StateVariable name="lastAfterspike" dimension="time" />
-            <StateVariable name="step" dimension="none"/>
+            <StateVariable name="pstep" dimension="none"/>
             <StateVariable name="spikeProcessed" dimension="none"/>
             <StateVariable name="afterspikeProcessed" dimension="none"/>
             
@@ -57,18 +57,19 @@
             <TimeDerivative variable="Ron" value="(synon*Rinf - Ron)/Rtau" />
             <TimeDerivative variable="Roff" value="-Beta*Roff" />
             <TimeDerivative variable="gampa" value="-gampa/ampatau" />
+            <TimeDerivative variable="spikeProcessed" value="0" />
             
-            <ConditionalDerivedVariable name="stepPlusOne" dimension="none">
-                <Case condition="step .eq. 2*sigHalf" value="2*sigHalf"/>
-                <Case condition="step .lt. 2*sigHalf" value="step + 1"/>
+            <ConditionalDerivedVariable name="pstepPlusOne" dimension="none">
+                <Case condition="pstep .eq. 2*sigHalf" value="2*sigHalf"/>
+                <Case condition="pstep .lt. 2*sigHalf" value="pstep + 1"/>
             </ConditionalDerivedVariable>
             
-            <ConditionalDerivedVariable name="stepMinusOne" dimension="none">
-                <Case condition="step .eq. 0" value="0"/>
-                <Case condition="step .gt. 0" value="step - 1"/>
+            <ConditionalDerivedVariable name="pstepMinusOne" dimension="none">
+                <Case condition="pstep .eq. 0" value="0"/>
+                <Case condition="pstep .gt. 0" value="pstep - 1"/>
             </ConditionalDerivedVariable>
             
-            <DerivedVariable name="plasticity" dimension="none" value="1 - 1/(1 + exp((step - sigHalf)/sigSlope))" />
+            <DerivedVariable name="plasticity" dimension="none" value="1 - 1/(1 + exp((pstep - sigHalf)/sigSlope))" />
             
             <OnStart>
                 <StateAssignment variable="synon" value="0" />
@@ -77,7 +78,7 @@
                 <StateAssignment variable="t0" value="0" />
                 <StateAssignment variable="lastSpike" value="t" />
                 <StateAssignment variable="lastAfterspike" value="t" />
-                <StateAssignment variable="step" value="0" />
+                <StateAssignment variable="pstep" value="0" />
                 <StateAssignment variable="spikeProcessed" value="1" />
                 <StateAssignment variable="afterspikeProcessed" value="1" />
             </OnStart>
@@ -88,11 +89,11 @@
             </OnEvent>
             
             <OnCondition test="spikeProcessed .eq. 0 .and. timeSinceSpike .lt. LTPlimit">
-                <StateAssignment variable="step" value="stepPlusOne"/>
+                <StateAssignment variable="pstep" value="pstepPlusOne"/>
             </OnCondition>
             
             <OnCondition test="spikeProcessed .eq. 0 .and. timeSinceSpike .geq. LTPlimit .and. timeSinceSpike .leq. LTDlimit">
-                <StateAssignment variable="step" value="stepMinusOne"/>
+                <StateAssignment variable="pstep" value="pstepMinusOne"/>
             </OnCondition>
             
             <OnCondition test="spikeProcessed .eq. 0">

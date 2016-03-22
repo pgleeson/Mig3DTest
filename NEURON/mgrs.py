@@ -116,16 +116,17 @@ class MGRS:
 
     # Cannot be done above because output ports must exist prior to using 
     # an output gid as an input port on the same process.
-    if self.fi:
-      self.gd2fi = pc.gid_connect(self.gd_gid, self.fi)
-      self.gd2fi.weight[0] = 1 # normalized
-      self.gd2fi.weight[1] = 0
-      self.gd2fi.delay = 1
-    if self.ampanmda:
-      self.md2ampanmda = pc.gid_connect(self.md_gid, self.ampanmda)
-      self.md2ampanmda.weight[0] = 1 #normalized
-      self.md2ampanmda.weight[1] = 0
-      self.md2ampanmda.delay = 1
+    if makeSynConns:
+        if self.fi:
+          self.gd2fi = pc.gid_connect(self.gd_gid, self.fi)
+          self.gd2fi.weight[0] = 1 # normalized
+          self.gd2fi.weight[1] = 0
+          self.gd2fi.delay = 1
+        if self.ampanmda:
+          self.md2ampanmda = pc.gid_connect(self.md_gid, self.ampanmda)
+          self.md2ampanmda.weight[0] = 1 #normalized
+          self.md2ampanmda.weight[1] = 0
+          self.md2ampanmda.delay = 1
 
   def pr(self):
     print "%d %d <-> %d %d"%(self.mgid, self.md_gid, self.gd_gid, self.ggid)

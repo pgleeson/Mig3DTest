@@ -1,10 +1,12 @@
 import os
 import sys
+sys.path.append("/usr/local/lib/python2.7/site-packages")
+import neuroml
+
+from neuronHelper import *
 from neuron import h
 from pyneuroml import pynml
-
-#import pydevd
-#pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=True)
+from pyneuroml.neuron import export_to_neuroml2
 
 h.chdir('../NEURON')
 sys.path.append('../NEURON')
@@ -15,7 +17,7 @@ def __main__():
     import modeldata
 
     MCs = 1
-    GCsPerMC = 5
+    GCsPerMC = 1
 
     networkTemplate = FileTemplate("../NeuroML2/Networks/NetworkTemplate.xml")
     includeTemplate = FileTemplate("../NeuroML2/Networks/IncludeTemplate.xml")
@@ -98,8 +100,8 @@ def __main__():
         gcNML = gcNMLs[synapse.ggid].cells[0]
 
         # Position the spine along the GC priden
-        neck = [seg for seg in gcNML.morphology.segments if seg.name == 'Seg0_neck'][0]
-        neck.parent.fraction_along = `synapse.xg`
+        import exportHelper
+        exportHelper.splitSegmentAlongFraction(gcNML,"Seg0_priden2_0","priden2_0",synapse.xg,'Seg0_neck')
         pynml.write_neuroml2_file(gcNMLs[synapse.ggid], "../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml" % synapse.ggid)
 
         # Add Dendro-dendritic synapses
@@ -152,3 +154,35 @@ class FileTemplate():
 
 if __name__ == "__main__":
     __main__()
+
+#makeTestPlots()
+
+#def makeTestPlots():
+#
+h.tstop = 300
+h.dt = 0.025
+
+#clampM = h.IClamp(h.Mitral[0].soma(0.5))
+#clampM.delay = 50
+#clampM.dur = 200
+#clampM.amp = 0.8
+#
+#clampG = h.IClamp(h.Granule[0].soma(0.5))
+#clampG.delay = 50
+#clampG.dur = 200
+#clampG.amp = 0.05
+#
+#g=h.Graph()
+#h.graphList[0].append(g)
+#g.size(0,h.tstop,-80,50)
+#g.addvar('mitral soma',   'v(0.5)',  1,0, sec = h.Mitral[0].soma)
+#g.addvar('mitral secden', 'v(0.829)',2,0, sec = h.Mitral[0].secden[8])
+#
+#g2=h.Graph()
+#h.graphList[0].append(g2)
+#g2.size(0,h.tstop,-80,50)
+#g2.addvar('gran soma',       'v(0.5)',2,0, sec = h.Granule[0].soma)
+#g2.addvar('gran priden',     'v(0.5)',4,0, sec = h.Granule[0].priden2[0])
+#g2.addvar('gran spine head', 'v(0.5)',5,0, sec = h.GranuleSpine[0].head)
+
+h.nrnmainmenu()

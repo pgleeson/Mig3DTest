@@ -1,5 +1,8 @@
 import os
 import sys
+import re
+import copy
+import exportHelper
 
 sys.path.append("/usr/local/lib/python2.7/site-packages")
 import neuroml
@@ -26,11 +29,8 @@ pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=Tr
 
 def __main__():
 
-    import pydevd
-    #pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=True)
-
     numMitralsToUse = 1
-    numGranulesPerMitralToExport = 5
+    numGranulesPerMitralToExport = 1
     numGranulesTotal = numMitralsToUse * numGranulesPerMitralToExport
 
     mitral2granule = {}
@@ -56,7 +56,6 @@ def exportNetworkGCs(netFile):
 
     cells = {}
     for gcid in gcids:
-        #if not os.path.isfile("../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml"):
         cells.update({ gcid: { 'cell': mkgranule(gcid), 'index': len(cells)} })
 
     exportToNML(cells)
@@ -113,9 +112,12 @@ def exportToNML(cells):
         # Replace placeholders with contents from GranuleCell...xml files
         replaceChannelPlaceholders(nml_cell_file)
 
-        # Orient cell along the versor
         cell, nml_doc, nml_cell_file = readGCnml(gcid)
 
+        # Fix the fractionAlong parent segment bug ( https://github.com/NeuroML/org.neuroml.export/issues/46 )
+        exportHelper.splitSegmentAlongFraction(cell, "Seg0_priden", "priden", 0.8, "Seg0_priden2_0")
+
+        # Orient cell along the versor
         versor = granules.granule_position_orientation(gcid)[1]
 
         for seg in cell.morphology.segments:

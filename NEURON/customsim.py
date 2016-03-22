@@ -18,6 +18,8 @@ def setup(mitralArg, granArg, run = False):
 
 if __name__ == '__main__':
     
+    import sys
+
     offset = 0
     if len(sys.argv) >= 2 and sys.argv[1] == "-python":
         offset = 2

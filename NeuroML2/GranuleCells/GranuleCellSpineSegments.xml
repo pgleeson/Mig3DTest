@@ -11,10 +11,10 @@
                 <distal y="3" x="0" z="0" diameter="1"/>
             </segment>
 
-            <segmentGroup id="neck_group">
+            <segmentGroup neuroLexId="sao864921383" id="neck_group">
                 <member segment="3"/>
             </segmentGroup>
-            <segmentGroup id="head_group">
+            <segmentGroup neuroLexId="sao864921383" id="head_group">
                 <member segment="4"/>
             </segmentGroup>
             <segmentGroup id="spine_group">
