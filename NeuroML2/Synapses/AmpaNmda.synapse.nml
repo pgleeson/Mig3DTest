@@ -47,8 +47,8 @@
             <DerivedVariable name="mgblock" dimension="none" value="1 / (1 + exp(-0.062 * (v/MVOLT)) * ((mg/MMOL) / 3.57))" />
             <DerivedVariable name="gnmda" dimension="conductance" value="mgblock*(Ron + Roff)*gmax*nmdafactor" />
             
-            <DerivedVariable name="inmda" dimension="current" value="gnmda*(v - E)" />
-            <DerivedVariable name="iampa" dimension="current" value="gampa*(v - E)" />
+            <DerivedVariable name="inmda" dimension="current" value="gnmda*(E - v)" />
+            <DerivedVariable name="iampa" dimension="current" value="gampa*(E - v)" />
             
             <DerivedVariable name="i" exposure="i" dimension="current" value="iampa + inmda" />
             <DerivedVariable name="timeSinceSpike" dimension="time" value="t-lastSpike"/>

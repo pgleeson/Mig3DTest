@@ -11,28 +11,38 @@
     
     
     
-    <iafCell id="iaf1" leakReversal="-50mV" thresh="-55mV" reset="-80mV" C="1e-5uF" leakConductance="35e-7mS"/>
-    <iafCell id="iaf2" leakReversal="-50mV" thresh="-55mV" reset="-80mV" C="1e-5uF" leakConductance="5e-7mS"/>
+    <iafCell id="iaf1" leakReversal="-70mV" thresh="-55mV" reset="-80mV" C="1e-5uF" leakConductance="35e-7mS"/>
+    <iafCell id="iaf2" leakReversal="-70mV" thresh="-55mV" reset="-80mV" C="1e-5uF" leakConductance="5e-7mS"/>
     
+    <timedSynapticInput id="synTrain" synapse="AmpaNmdaSyn" spikeTarget="./AmpaNmdaSyn">
+        <spike id="0" time="20 ms"/>
+        <spike id="1" time="100 ms"/>
+        <spike id="2" time="110 ms"/>
+    </timedSynapticInput>
     
     <network id="net2">
-        <population id="src" component="iaf1" size="1"/>
-        <population id="tgt" component="iaf2" size="1"/>
-        <synapticConnection from="src[0]" to="tgt[0]" synapse="AmpaNmdaSyn" destination="synapses"/>
+        <population id="tgt" component="iaf1" size="1"/>
+        <explicitInput target="tgt[0]" input="synTrain" destination="synapses"/>
     </network>
     
     
     <Simulation id="sim1" length="300ms" step="0.01ms" target="net2">
-        <Display id="d1" title="FI sin" timeScale="1ms" xmin="0" xmax="300" ymin="-75" ymax="-50">
-            <Line id="l0" quantity="src[0]/v" scale="1mV" color="#000000" timeScale="1ms"/>
-            <Line id="l1" quantity="tgt[0]/v" scale="1mV" color="#0000FF" timeScale="1ms"/>
+        <Display id="d1" title="Voltage" timeScale="1ms" xmin="0" xmax="300" ymin="-75" ymax="-50">
+            <Line id="v" quantity="tgt[0]/v" scale="1mV" color="#0000FF" timeScale="1ms"/>
         </Display>
         
         <Display id="d2" title="fi g" timeScale="1ms" xmin="0" xmax="300" ymin="-0.01" ymax="0.11">
-            <Line id ="plast"  quantity="tgt[0]/AmpaNmdaSyn/plasticity" scale="0.01 S"  color="#000000" timeScale="1ms"/>
-            <Line id ="i"  quantity="tgt[0]/AmpaNmdaSyn/i" scale="1 pA"  color="#0000FF" timeScale="1ms"/>
+            <Line id ="i"  quantity="tgt[0]/synTrain/AmpaNmdaSyn/i" scale="1 pA"  color="#0000FF" timeScale="1ms"/>
+            <Line id ="i ampa"  quantity="tgt[0]/synTrain/AmpaNmdaSyn/iampa" scale="1 pA"  color="#FF00FF" timeScale="1ms"/>
+            <Line id ="i nmda"  quantity="tgt[0]/synTrain/AmpaNmdaSyn/inmda" scale="1 pA"  color="#00FFFF" timeScale="1ms"/>
+            <!--<Line id ="plast"  quantity="tgt[0]/AmpaNmdaSyn/plasticity" scale="0.01 S"  color="#000000" timeScale="1ms"/>
             <Line id ="tSince" quantity="tgt[0]/AmpaNmdaSyn/timeSinceSpike" scale="35 mS"  color="#FF0000" timeScale="1ms"/>
-            <Line id ="tSince" quantity="tgt[0]/AmpaNmdaSyn/timeSinceAfterspike" scale="35 mS"  color="#FF0000" timeScale="1ms"/>
+            <Line id ="tSince" quantity="tgt[0]/AmpaNmdaSyn/timeSinceAfterspike" scale="35 mS"  color="#FF0000" timeScale="1ms"/>-->
+        </Display>
+        
+        <Display id="d3" title="g" timeScale="1ms" xmin="0" xmax="300" ymin="-0.01" ymax="0.11">
+            <Line id ="g ampa"  quantity="tgt[0]/synTrain/AmpaNmdaSyn/gampa" scale="1 nS"  color="#0000FF" timeScale="1ms"/>
+            <Line id ="g nmda"  quantity="tgt[0]/synTrain/AmpaNmdaSyn/gnmda" scale="1 nS"  color="#00FFFF" timeScale="1ms"/>
         </Display>
         
     </Simulation>
