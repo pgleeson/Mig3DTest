@@ -4,7 +4,7 @@
     <notes>Ampa/Nmda synapse with spike-timing plasticity. Implemented from Migliore et. al. 2014</notes>
 
     <ComponentType name="ampaNmdaSynapse"
-        extends="baseSynapse">
+        extends="baseVoltageDepSynapse">
 
         <Parameter name="LTPlimit" dimension="time" description="The upper time limit for LTP. E.g. 30 ms."/>
         <Parameter name="LTDlimit" dimension="time" description="The upper time limit for LTD. The LTP window will be between LTPlimit and LTDlimit. E.g. 200 ms."/>
@@ -23,8 +23,8 @@
         <Parameter name="E" dimension="voltage"/>
         <Parameter name="mg" dimension="concentration"/>
         
-        <Constant name="mV" dimension="voltage" value="1 mV" />
-        <Constant name="mM" dimension="concentration" value="1 mM" />
+        <Constant name="MVOLT" dimension="voltage" value="1 mV" />
+        <Constant name="MMOL" dimension="concentration" value="1 mM" />
         
         <Dynamics>
             <StateVariable name="Ron" dimension="none"/>
@@ -44,7 +44,7 @@
             <DerivedVariable name="Rtau" dimension="time" value="1 / (Alpha + Beta)" />
             
             
-            <DerivedVariable name="mgblock" dimension="none" value="1 / (1 + exp(0.062 * -(v/mV)) * ((mg/mM) / 3.57))" />
+            <DerivedVariable name="mgblock" dimension="none" value="1 / (1 + exp(-0.062 * (v/MVOLT)) * ((mg/MMOL) / 3.57))" />
             <DerivedVariable name="gnmda" dimension="conductance" value="mgblock*(Ron + Roff)*gmax*nmdafactor" />
             
             <DerivedVariable name="inmda" dimension="current" value="gnmda*(v - E)" />
