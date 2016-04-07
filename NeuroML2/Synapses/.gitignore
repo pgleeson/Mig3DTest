@@ -1,0 +1,16 @@
+*.pyc
+*.*~
+x86_64
+i386
+umac
+*.dll
+
+*.svg
+*.pov
+*.ini
+*.png
+*.dat
+*.mod
+*.hoc
+*_nrn.py
+

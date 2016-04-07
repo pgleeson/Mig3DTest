@@ -17,11 +17,11 @@
     
     <Include file="AmpaNmda.synapse.nml" />
     
-    <pulseGenerator id="input_1" delay="40ms" duration="100ms" amplitude="1 nA"/>
+    <pulseGenerator id="input_1" delay="20ms" duration="200ms" amplitude="5 nA"/>
     
     
-    <ampaNmdaSynapse id="AmpaNmdaSyn2" Cdur="1 ms" Alpha="0.35 per_ms" Beta="0.035 per_ms" E="0.0 mV" mg="1 mM"
-        gmax="50 uS" gampafactor="0.001" nmdafactor="0.0035" LTPlimit="33.33 ms" LTDlimit="250 ms" sigHalf="50"
+    <ampaNmdaSynapse id="AmpaNmdaSyn2" Cdur="1 ms" Alpha="0.35 per_ms" Beta="0.035 per_ms" erev="0.0 mV" mg="1 mM"
+        gbase="50 uS" gampafactor="0.01" nmdafactor="0.035" LTPlimit="33.33 ms" LTDlimit="250 ms" sigHalf="50"
         sigSlope="10" ampatau="3 ms"/>
     
     <network id="network" type="networkWithTemperature" temperature="35 degC">

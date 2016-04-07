@@ -4,7 +4,7 @@
     <notes>Ampa/Nmda synapse with spike-timing plasticity. Implemented from Migliore et. al. 2014</notes>
 
     <ComponentType name="ampaNmdaSynapse"
-        extends="baseVoltageDepSynapse">
+        extends="baseConductanceBasedSynapse">
 
         <Parameter name="LTPlimit" dimension="time" description="The upper time limit for LTP. E.g. 30 ms."/>
         <Parameter name="LTDlimit" dimension="time" description="The upper time limit for LTD. The LTP window will be between LTPlimit and LTDlimit. E.g. 200 ms."/>
@@ -14,13 +14,13 @@
         <Parameter name="Alpha" dimension="per_time"/>
         <Parameter name="Beta" dimension="per_time"/>
         
-        <Parameter name="gmax" dimension="conductance"/>
+        <Parameter name="gbase" dimension="conductance"/>
         <Parameter name="gampafactor" dimension="none"/>
         <Parameter name="nmdafactor" dimension="none"/>
         
         <Parameter name="ampatau" dimension="time"/>
         <Parameter name="Cdur" dimension="time"/>
-        <Parameter name="E" dimension="voltage"/>
+        <Parameter name="erev" dimension="voltage"/>
         <Parameter name="mg" dimension="concentration"/>
         
         <Constant name="MVOLT" dimension="voltage" value="1 mV" />
@@ -45,10 +45,12 @@
             
             
             <DerivedVariable name="mgblock" dimension="none" value="1 / (1 + exp(-0.062 * (v/MVOLT)) * ((mg/MMOL) / 3.57))" />
-            <DerivedVariable name="gnmda" dimension="conductance" value="mgblock*(Ron + Roff)*gmax*nmdafactor" />
+            <DerivedVariable name="gnmda" dimension="conductance" value="mgblock*(Ron + Roff)*gbase*nmdafactor" />
             
-            <DerivedVariable name="inmda" dimension="current" value="gnmda*(E - v)" />
-            <DerivedVariable name="iampa" dimension="current" value="gampa*(E - v)" />
+            <DerivedVariable name="inmda" dimension="current" value="gnmda*(erev - v)" />
+            <DerivedVariable name="iampa" dimension="current" value="gampa*(erev - v)" />
+            
+            <DerivedVariable name="g" exposure="g" dimension="conductance" value="gampa + gnmda" />
             
             <DerivedVariable name="i" exposure="i" dimension="current" value="iampa + inmda" />
             <DerivedVariable name="timeSinceSpike" dimension="time" value="t-lastSpike"/>
@@ -97,7 +99,7 @@
             </OnCondition>
             
             <OnCondition test="spikeProcessed .eq. 0">
-                <StateAssignment variable="gampa" value="gampa+plasticity*gmax*gampafactor" />
+                <StateAssignment variable="gampa" value="gampa+plasticity*gbase*gampafactor" />
                 <StateAssignment variable="r0" value="r0*exp(-Beta*timeSinceAfterspike)" />
                 <StateAssignment variable="synon" value="synon + plasticity" />
                 <StateAssignment variable="Ron" value="Ron + r0" />
@@ -126,8 +128,8 @@
     </ComponentType>
     
     
-    <ampaNmdaSynapse id="AmpaNmdaSyn" Cdur="1 ms" Alpha="0.35 per_ms" Beta="0.035 per_ms" E="0.0 mV" mg="1 mM"
-        gmax="2 uS" gampafactor="0.001" nmdafactor="0.0035" LTPlimit="33.33 ms" LTDlimit="250 ms" sigHalf="50"
+    <ampaNmdaSynapse id="AmpaNmdaSyn" Cdur="1 ms" Alpha="0.35 per_ms" Beta="0.035 per_ms" erev="0.0 mV" mg="1 mM"
+        gbase="2 uS" gampafactor="0.001" nmdafactor="0.0035" LTPlimit="33.33 ms" LTDlimit="250 ms" sigHalf="50"
         sigSlope="10" ampatau="3 ms"/>
 
 </neuroml>
