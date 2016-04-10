@@ -1,5 +1,16 @@
-import sys
+# This script shows the output of a network with MC and GC
+# From this folder, run it with the following command:
+# cd ../../neuron && nrniv -python ../Python/Testing/test_network.py; cd ../Python/Testing
 
+import sys
+import os
+
+#os.chdir("../../NEURON")
+from neuron import h
+os.chdir("../NeuroML2")
+
+h.chdir('../NEURON')
+sys.path.append('../NEURON')
 
 import custom_params
 custom_params.filename = 'fig7'
@@ -23,7 +34,7 @@ nmc.build_net_round_robin(getmodel(), 'c10.dic')
 model = getmodel()
 
 h.tstop = 300
-h.dt = 0.025
+h.dt = 1/64.0
 
 #GIDs
 mc = 0
@@ -50,7 +61,6 @@ g2=h.Graph()
 h.graphList[0].append(g2)
 g2.size(0,h.tstop,-80,50)
 g2.addvar('gran soma',       'v(0.5)',2,0, sec = model.granules[gc].soma)
-g2.addvar('gran priden',     'v(0.5)',4,0, sec = model.granules[gc].priden2[0])
 g2.addvar('gran spine head', 'v(0.5)',5,0, sec = model.mgrss[syn].spine.head)
 
 
@@ -63,5 +73,4 @@ gc = model.granules[gc]
 from neuronHelper import *
 details(gc.soma)
 
-
-
+h.run()

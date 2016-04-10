@@ -3,14 +3,20 @@ import sys
 sys.path.append("/usr/local/lib/python2.7/site-packages")
 import neuroml
 
-from neuronHelper import *
+sys.path.append("/usr/local/lib/python2.7/site-packages")
+import neuroml
+
+#Nav to neuron folder where compiled MOD files are present
+os.chdir("../../NEURON")
 from neuron import h
-from pyneuroml import pynml
-from pyneuroml.neuron import export_to_neuroml2
+os.chdir("../NeuroML2")
 
 h.chdir('../NEURON')
 sys.path.append('../NEURON')
 
+from neuronHelper import *
+from pyneuroml import pynml
+from pyneuroml.neuron import export_to_neuroml2
 
 def __main__():
     import customsim
@@ -35,6 +41,9 @@ def __main__():
 
     mcNMLs = {}
     gcNMLs = {}
+
+#import pydevd
+#pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=True)
 
     # Make MC includes and populations
     for mcgid in model.mitral_gids:
@@ -143,6 +152,7 @@ def __main__():
         file.write(network)
 
     print('Net file saved to: ' + netFile)
+
 
 class FileTemplate():
     def __init__(self, path):
