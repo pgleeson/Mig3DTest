@@ -8,7 +8,7 @@ sys.path.append("/usr/local/lib/python2.7/site-packages")
 import neuroml
 
 #Nav to neuron folder where compiled MOD files are present
-os.chdir("../NEURON")
+os.chdir("../../NEURON")
 from neuron import h
 os.chdir("../NeuroML2")
 
@@ -24,8 +24,9 @@ from pyneuroml.neuron import export_to_neuroml2
 from pyneuroml import pynml
 from neuroml import SegmentGroup
 
-import pydevd
-pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=True)
+
+#import pydevd
+#pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=True)
 
 def __main__():
 
@@ -83,20 +84,18 @@ def exportToNML(cells):
         newFile = '../NeuroML2/GranuleCells/Exported/Granule_0_%i.cell.nml' % gcid
         os.rename(oldFile, newFile)
 
+
     for gcid in cells.keys():
 
         cell, nml_doc, nml_cell_file = readGCnml(gcid)
-
+        
         print("Loaded GC cell %i with %i segments"%(gcid, len(cell.morphology.segments)))
 
         # Change cell ID to preserve GCID
         cell.id = "Granule_0_%i" % gcid
 
         # Change segment ids to start at 0 and increment
-        nextSegId = 0
-        for seg in cell.morphology.segments:
-            changeSegmentId(cell, seg.id, nextSegId)
-            nextSegId += 1
+        exportHelper.resetRoot(cell)
 
         # Replace ModelViewParmSubset_N groups with all, axon, soma, dendrite groups
         buildStandardSegmentGroups(cell)
@@ -108,6 +107,7 @@ def exportToNML(cells):
 
         # Save the new NML
         pynml.write_neuroml2_file(nml_doc, nml_cell_file)
+
 
         # Replace placeholders with contents from GranuleCell...xml files
         replaceChannelPlaceholders(nml_cell_file)
@@ -154,19 +154,7 @@ def readGCnml(gcid):
 
     return cell, nml_doc, nml_cell_file
 
-def changeSegmentId(cell, sourceId, targetId):
 
-    for seg in cell.morphology.segments:
-        if seg.id == sourceId:
-            seg.id = targetId
-
-            for sg in cell.morphology.segment_groups:
-                for memb in sg.members:
-                    if memb.segments == sourceId:
-                        memb.segments = targetId
-
-        if seg.parent is not None and seg.parent.segments == sourceId:
-            seg.parent.segments = targetId
 
 def setAlongVersor(segmentPoint, versor, startPoint, distance):
 

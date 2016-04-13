@@ -1,9 +1,10 @@
 import os
 import sys
 import neuroml
+import exportHelper
 
 #Nav to neuron folder where compiled MOD files are present
-os.chdir("../NEURON")
+os.chdir("../../NEURON")
 from neuron import h
 os.chdir("../NeuroML2")
 
@@ -17,7 +18,7 @@ from pyneuroml import pynml
 from neuroml import SegmentGroup
 
 def __main__():
-    num_cells_to_export = 635
+    num_cells_to_export = 1
 
     cells = []
     for mgid in range(num_cells_to_export):
@@ -32,7 +33,7 @@ def __main__():
 
     for i in range(num_cells_to_export):
 
-        print("Processing cell %i out of i%"%(i, num_cells_to_export))
+        print("Processing cell %i out of %i"%(i, num_cells_to_export))
 
         nml_cell_file = "../NeuroML2/MitralCells/Exported/Mitral_0_%i.cell.nml" % i
 
@@ -40,40 +41,28 @@ def __main__():
 
         cell = nml_doc.cells[0]
 
+        import pydevd
+        pydevd.settrace('10.211.55.3', port=4200, stdoutToServer=True, stderrToServer=True, suspend=True)
+        
+        # Set root to id=0 and increment others
+        exportHelper.resetRoot(cell)
+
         somaSeg = [seg for seg in cell.morphology.segments if seg.name == "Seg0_soma"][0]
         initialSeg = [seg for seg in cell.morphology.segments if seg.name == "Seg0_initialseg"][0]
         hillockSeg = [seg for seg in cell.morphology.segments if seg.name == "Seg0_hillock"][0]
 
-        #Fix initial and hillock segs by moving them to the soma
+        # Fix initial and hillock segs by moving them to the soma
         hillockSeg.proximal = pointMovedByOffset(hillockSeg.proximal, somaSeg.distal)
         hillockSeg.distal = pointMovedByOffset(hillockSeg.distal, somaSeg.distal)
         initialSeg.proximal = pointMovedByOffset(initialSeg.proximal, somaSeg.distal)
         initialSeg.distal = pointMovedByOffset(initialSeg.distal, somaSeg.distal)
 
-        #Move everything back to the origin
+        # Move everything back to the origin
         originOffset = type("", (), dict(x = -somaSeg.proximal.x, y = -somaSeg.proximal.y, z = -somaSeg.proximal.z ))()
 
         for seg in cell.morphology.segments:
             seg.proximal = pointMovedByOffset(seg.proximal, originOffset)
             seg.distal =   pointMovedByOffset(seg.distal, originOffset)
-
-        bad_root = -1
-        root_id = 0
-        for seg in cell.morphology.segments:
-            if seg.parent is None:
-                if seg.id != 0:
-                    bad_root = seg.id
-                    seg.id = root_id
-                    
-        if bad_root > 0:
-            for seg in cell.morphology.segments:
-                if seg.parent is not None:
-                    if seg.parent.segments == bad_root:
-                        seg.parent.segments = root_id
-            for sg in cell.morphology.segment_groups:
-                for memb in sg.members:
-                    if memb.segments == bad_root:
-                        memb.segments = root_id
 
         # Replace ModelViewParmSubset_N groups with all, axon, soma, dendrite groups
         buildStandardSegmentGroups(cell)
@@ -87,6 +76,8 @@ def __main__():
 
         # Replace placeholders with contents from MitralCell...xml files
         replaceChannelPlaceholders(nml_cell_file)
+
+        print("COMPLETED: " + nml_cell_file)
 
     print("DONE")
 
